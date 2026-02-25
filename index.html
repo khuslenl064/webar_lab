@@ -35,32 +35,55 @@
     }
 
     model-viewer {
-      width: 100vw;
+      width: 100%;
       height: calc(100vh - 72px);
       background: #f5f5f5;
       position: relative;
+      display: block;
     }
 
-    /* AR товч - top right */
-    model-viewer::part(default-ar-button) {
+    /* Custom AR button styling - model-viewer-ийн дээр байрлана */
+    .custom-ar-button {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      background: #ff6f61; /* тод улаан өнгө */
+      top: 20px;
+      right: 20px;
+      background: #ff6f61;
       color: white;
-      padding: 14px 20px;
-      border-radius: 14px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 40px;
       font-size: 16px;
       font-weight: bold;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       cursor: pointer;
-      z-index: 10;
+      z-index: 100;
       transition: transform 0.2s, background 0.2s;
+      letter-spacing: 0.5px;
     }
 
-    model-viewer::part(default-ar-button):hover {
+    .custom-ar-button:hover {
       background: #ff4f3a;
       transform: scale(1.05);
+    }
+
+    .custom-ar-button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* AR support message */
+    .ar-support-message {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      z-index: 100;
     }
   </style>
 </head>
@@ -74,15 +97,98 @@
     </div>
   </header>
 
-  <model-viewer
-    src="office_chair.glb"
-    ar
-    ar-modes="scene-viewer webxr"
-    ar-placement="floor"
-    camera-controls
-    auto-rotate
-    shadow-intensity="0.8"
-    alt="3D загвар AR-д">
-  </model-viewer>
+  <div style="position: relative;">
+    <model-viewer
+      id="modelViewer"
+      src="office_chair.glb"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      ar-placement="floor"
+      camera-controls
+      auto-rotate
+      shadow-intensity="0.8"
+      alt="3D загвар AR-д">
+    </model-viewer>
+    
+    <!-- Custom AR button -->
+    <button id="arButton" class="custom-ar-button">
+      🔍 AR-ээр харах
+    </button>
+    
+    <!-- AR support status message -->
+    <div id="arSupportMessage" class="ar-support-message">
+      AR дэмжлэг шалгаж байна...
+    </div>
+  </div>
+
+  <script>
+    const modelViewer = document.getElementById('modelViewer');
+    const arButton = document.getElementById('arButton');
+    const arSupportMessage = document.getElementById('arSupportMessage');
+
+    // Model viewer ачааллагуут
+    modelViewer.addEventListener('load', async () => {
+      checkARSupport();
+    });
+
+    // AR дэмжлэг шалгах функц
+    function checkARSupport() {
+      // AR дэмжих эсэхийг шалгах
+      const isARSupported = modelViewer.canActivateAR;
+      
+      if (isARSupported) {
+        arSupportMessage.textContent = '✅ Таны төхөөрөмж AR дэмжиж байна';
+        arSupportMessage.style.backgroundColor = 'rgba(0,128,0,0.8)';
+        arButton.disabled = false;
+      } else {
+        arSupportMessage.textContent = '❌ AR боломжгүй (WebXR дэмжихгүй)';
+        arSupportMessage.style.backgroundColor = 'rgba(255,0,0,0.8)';
+        arButton.disabled = true;
+      }
+    }
+
+    // AR товч дээр дарах үйлдэл
+    arButton.addEventListener('click', async () => {
+      if (!modelViewer.canActivateAR) {
+        alert('Таны төхөөрөмж AR дэмжихгүй байна.');
+        return;
+      }
+
+      try {
+        // AR идэвхжүүлэх
+        arButton.textContent = '🔄 AR эхлүүлж байна...';
+        arButton.disabled = true;
+        
+        await modelViewer.activateAR();
+        
+        // Хэрэв амжилттай бол AR нээгдэнэ
+        arButton.textContent = '🔍 AR-ээр харах';
+        arButton.disabled = false;
+      } catch (error) {
+        console.error('AR идэвхжүүлэхэд алдаа гарлаа:', error);
+        arButton.textContent = '🔍 AR-ээр харах';
+        arButton.disabled = false;
+        arSupportMessage.textContent = '❌ AR эхлүүлэхэд алдаа гарлаа';
+        arSupportMessage.style.backgroundColor = 'rgba(255,0,0,0.8)';
+      }
+    });
+
+    // AR статус өөрчлөгдөхөд
+    modelViewer.addEventListener('ar-status', (event) => {
+      console.log('AR status:', event.detail.status);
+      
+      if (event.detail.status === 'session-started') {
+        arSupportMessage.textContent = '🎮 AR идэвхжсэн';
+        arSupportMessage.style.backgroundColor = 'rgba(0,128,0,0.8)';
+      } else if (event.detail.status === 'session-ended') {
+        arSupportMessage.textContent = '✅ AR дууслаа';
+        arSupportMessage.style.backgroundColor = 'rgba(0,128,0,0.8)';
+        setTimeout(() => checkARSupport(), 1000);
+      }
+    });
+
+    // Анхны шалгалт
+    setTimeout(checkARSupport, 1000);
+  </script>
 </body>
 </html>
