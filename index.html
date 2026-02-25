@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WebAR Lab - Model Viewer</title>
 
+  <!-- model-viewer -->
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
@@ -27,17 +28,17 @@
       position: relative;
     }
 
-    /* AR button center bottom */
+    /* AR button - TOP RIGHT */
     model-viewer::part(default-ar-button) {
       position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: black;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
       color: white;
-      padding: 12px 20px;
+      padding: 12px 18px;
       border-radius: 12px;
       font-size: 14px;
+      font-weight: bold;
     }
 
     .hint {
@@ -48,9 +49,11 @@
 </head>
 
 <body>
+
   <header>
     <h3 style="margin:0;">QR → WebAR Lab</h3>
     <div class="hint">
+      3D загварыг эргүүлж, томруулж болно.
       AR товчийг дарж бодит орчинд байрлуулна.
     </div>
   </header>
@@ -70,4 +73,3 @@
 
 </body>
 </html>
-
